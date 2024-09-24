@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Define operations map to simplify the calculation process
+
 $operations = [
     'plus'  => fn($a, $b) => $a + $b,
     'minus' => fn($a, $b) => $a - $b,
@@ -9,58 +9,52 @@ $operations = [
     'div'   => fn($a, $b) => ($b != 0) ? $a / $b : "Error: Division by zero"
 ];
 
-/**
- * Function to calculate result based on the inputs.
- * It also caches the result to avoid redundant calculations.
- */
+
 function calculate($angka1, $angka2, $operator, $operations) {
-    // Cache key is generated from the operation and numbers
+    
     $cacheKey = md5("$angka1-$operator-$angka2");
 
-    // Return cached result if available
+    
     if (isset($_SESSION['cache'][$cacheKey])) {
         return $_SESSION['cache'][$cacheKey];
     }
 
-    // Validate operator existence and calculate
+
     if (!array_key_exists($operator, $operations)) {
         return "Invalid operator";
     }
 
-    // Calculate result and store it in cache
+    
     $result = $operations[$operator]($angka1, $angka2);
     $_SESSION['cache'][$cacheKey] = $result;
 
     return $result;
 }
 
-/**
- * Function to clear calculation history and associated cache.
- */
 function clearHistory() {
-    // Remove history and cache from session
+
     unset($_SESSION['history']);
     unset($_SESSION['cache']);
 }
 
-// Initialize result and handle POST requests
+
 $result = 0;
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST['clear_history'])) {
-        // Handle the history clear action
+        
         clearHistory();
     } else {
-        // Handle calculation input
+        
         $angka1 = filter_input(INPUT_POST, 'angka1', FILTER_VALIDATE_FLOAT);
         $angka2 = filter_input(INPUT_POST, 'angka2', FILTER_VALIDATE_FLOAT);
         $operator = $_POST['operator'] ?? null;
 
-        // Validate input numbers and operator
+        
         if ($angka1 !== false && $angka2 !== false && $operator) {
             $result = calculate($angka1, $angka2, $operator, $operations);
             $calculation = "$angka1 $operator $angka2 = $result";
 
-            // Avoid duplicate entries in history
+
             if (!isset($_SESSION['history']) || !in_array($calculation, $_SESSION['history'])) {
                 $_SESSION['history'][] = $calculation;
             }
@@ -141,7 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <h3>Calculation History</h3>
         <ul>
             <?php
-            // Efficiently render history with buffer output
+            
             ob_start();
             if (!empty($_SESSION['history'])) {
                 foreach ($_SESSION['history'] as $calc) {
